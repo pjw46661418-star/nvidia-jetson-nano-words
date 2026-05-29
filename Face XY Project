@@ -1,0 +1,306 @@
+# Interactive XY Regression Project
+
+## 1. Project Overview
+
+이 프로젝트는 Interactive Tool을 사용하여:
+
+* 사용자 데이터를 직접 수집하고
+* 얼굴 특징의 XY 좌표를 학습하며
+* 실시간 카메라 입력으로 모델을 테스트하는
+
+이미지 회귀(Image Regression) 프로젝트이다.
+
+모델은:
+
+* Nose(코)
+* Left Eye(왼쪽 눈)
+* Right Eye(오른쪽 눈)
+
+등의 위치를 예측한다.
+
+---
+
+# 2. Project Workflow
+
+```text id="4j5w7i"
+Data Collection
+        ↓
+Model Training
+        ↓
+Live Inference
+        ↓
+Model Improvement
+        ↓
+Save Model
+```
+
+---
+
+# 3. Open Notebook
+
+JupyterLab에서:
+
+```text id="r7jk0z"
+regression/regression_interactive.ipynb
+```
+
+노트북을 실행한다.
+
+---
+
+# 4. Camera Setup
+
+카메라 설정 단계에서는:
+
+* 이미지 크기 설정
+* USB 카메라 활성화
+
+를 수행한다.
+
+주의:
+
+* 다른 노트북에서 카메라 사용 중이면 커널 종료 필요
+
+---
+
+# 5. TASK and CATEGORIES
+
+프로젝트에서는:
+
+* TASK
+* CATEGORIES
+
+를 정의한다.
+
+예시:
+
+```python id="2a5pkz"
+TASK = 'face'
+CATEGORIES = ['nose', 'left_eye', 'right_eye']
+```
+
+각 Category는:
+
+* X 좌표
+* Y 좌표
+
+2개의 값을 가진다.
+
+---
+
+# 6. Data Collection
+
+데이터 수집 단계에서는 클릭 가능한 이미지 위젯을 사용한다.
+
+사용자는:
+
+* 얼굴 특징 위치 클릭
+* XY 좌표 자동 저장
+
+을 수행한다.
+
+저장되는 데이터:
+
+* 이미지
+* 클릭 좌표(X,Y)
+
+---
+
+# 7. Model Setup
+
+프로젝트에서는 사전 훈련된 ResNet-18 모델을 사용한다.
+
+```python id="26v4wf"
+model = torchvision.models.resnet18(pretrained=True)
+```
+
+---
+
+# 8. Modify Final Layer
+
+회귀 프로젝트에서는:
+
+* 각 Category마다 X,Y 출력 필요
+
+하다.
+
+출력 차원 계산:
+
+```python id="52ow9r"
+output_dim = 2 * len(dataset.categories)
+```
+
+예시:
+
+```text id="5qvq2w"
+3 categories × 2 = 6 outputs
+```
+
+Fully Connected Layer 수정:
+
+```python id="rdw6w5"
+model.fc = torch.nn.Linear(512, output_dim)
+```
+
+---
+
+# 9. Live Inference
+
+실시간 카메라 피드에서 모델 예측 결과를 확인할 수 있다.
+
+예측 결과:
+
+* 파란색 원(Blue Circle)
+
+으로 표시된다.
+
+모델이:
+
+* Nose
+* Eye
+
+위치를 얼마나 정확히 추적하는지 확인 가능하다.
+
+---
+
+# 10. Model Training
+
+훈련 단계에서는 다음 하이퍼파라미터를 설정한다.
+
+### Hyperparameters
+
+* Epochs
+* Batch Size
+* Learning Rate
+* Momentum
+
+---
+
+## Loss Function
+
+회귀에서는 Mean Squared Error(MSE)를 사용한다.
+
+[
+MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
+]
+
+MSE는:
+
+* 예측 좌표
+* 실제 좌표
+
+사이의 오차를 계산한다.
+
+---
+
+# 11. Interactive Tool
+
+최종 도구에는 3개의 화면이 표시된다.
+
+| Window | Description        |
+| ------ | ------------------ |
+| Left   | Live Camera Feed   |
+| Center | Collected Snapshot |
+| Right  | Model Prediction   |
+
+---
+
+# 12. Data Collection Example
+
+초기 데이터 수집 예시:
+
+* Nose → 20 images
+* Left Eye → 20 images
+* Right Eye → 20 images
+
+학습 설정:
+
+* Epochs = 10
+
+훈련 후:
+
+* 실시간 추론 테스트 수행
+
+---
+
+# 13. Improving the Model
+
+모델 성능이 부족하면:
+
+* 새로운 데이터 추가
+* 재학습
+
+을 반복한다.
+
+---
+
+## Improvement Examples
+
+### Different Face Distance
+
+카메라와 얼굴 거리 변경
+
+### Different Background
+
+배경 환경 변경
+
+### Different Pose
+
+고개 방향 변경
+
+### Different Person
+
+다른 사람 얼굴 테스트
+
+---
+
+# 14. Key Idea
+
+딥러닝 모델 구축은 반복적인 과정이다.
+
+```text id="bnn51n"
+More Data + More Training = Better Model
+```
+
+---
+
+# 15. Save Model
+
+모델 성능이 만족스러우면:
+
+1. Model Path 입력
+2. Save Model 클릭
+
+하여 저장한다.
+
+---
+
+# 16. Additional Regression Projects
+
+TASK와 CATEGORIES를 변경하면 새로운 회귀 프로젝트를 만들 수 있다.
+
+예시:
+
+* Hand Tracking
+* Object Tracking
+* Robot Line Following
+* Camera Motion Tracking
+
+---
+
+# 17. Summary
+
+* Interactive Tool을 사용하여 직접 데이터를 수집한다.
+* ResNet-18 기반 회귀 모델을 사용한다.
+* 각 Category는 X,Y 두 개의 출력값이 필요하다.
+* 실시간 추론으로 모델 성능을 확인할 수 있다.
+* 데이터 추가와 재훈련으로 모델 성능을 개선한다.
+* 회귀 모델은 좌표 및 연속값 예측에 사용된다.
+
+---
+
+# References
+
+* PyTorch Documentation
+* NVIDIA Jetson AI Fundamentals
+* Deep Learning with PyTorch
