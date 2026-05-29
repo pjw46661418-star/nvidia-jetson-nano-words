@@ -1,0 +1,53 @@
+# 🚀 Getting Started with AI on Jetson Nano (Image Classification)
+
+NVIDIA Deep Learning Institute(DLI) 과정의 일환으로 진행한, Jetson Nano 환경 기반의 **실시간 이미지 분류(Image Classification) 프로젝트**입니다. 
+카메라 피드를 통해 실시간으로 사용자의 손동작(👍 Thumbs Up / 👎 Thumbs Down)을 인식하고 분류하는 모델을 구축했습니다.
+
+---
+
+## 🛠️ Tech Stacks
+<p>
+  <img src="https://img.shields.io/badge/Python-3.7+-3776AB?style=flat-square&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"/>
+  <img src="https://img.shields.io/badge/NVIDIA_Jetson_Nano-76B900?style=flat-square&logo=nvidia&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Jupyter_Lab-F37626?style=flat-square&logo=jupyter&logoColor=white"/>
+</p>
+
+* **Hardware:** NVIDIA Jetson Nano Developer Kit, USB Web Camera
+* **Framework & Libraries:** PyTorch, Torchvision, JetCam, ipywidgets
+
+---
+
+## 🧠 Project Workflow
+
+### Step 1. 개발 환경 및 도구 실행
+* Jetson Nano 디바이스에서 JupyterLab 인터페이스를 구축하고 `classification_interactive.ipynb` 노트북을 통해 인터랙티브 위젯 툴을 실행했습니다.
+
+### Step 2. 실시간 데이터 수집 (Data Collection)
+* 라이브 카메라 피드를 활용하여 현장에서 직접 학습 데이터를 수집했습니다.
+* **클래스 구성:** `thumbs_up` (엄지 위로), `thumbs_down` (엄지 아래로)
+* **데이터 개수:** 각 클래스당 약 30장 이상의 다양한 각도 및 배경 데이터를 수집하여 데이터 다양성을 확보했습니다.
+
+### Step 3. AI 모델 설계 (Model Architecture)
+* 이미지 분류에서 검증된 성능을 자랑하는 **ResNet-18** 모델을 베이스로 사용했습니다.
+* **전이 학습(Transfer Learning):** ImageNet으로 사전 훈련된(pretrained=True) 가중치를 로드한 후, 마지막 FC 레이어를 본 프로젝트의 목적에 맞게 2개의 출력(`model.fc = torch.nn.Linear(512, 2)`)으로 수정하여 학습 효율을 극대화했습니다.
+
+### Step 4. 모델 훈련 (Training)
+* **Loss Function:** CrossEntropyLoss
+* **Optimizer:** Adam Optimizer
+* **Hyperparameters:** Epochs = 10, Batch Size = 8
+* 실시간으로 Loss가 감소하고 Accuracy가 상승하는 추이를 위젯 인터페이스를 통해 모니터링하며 최적의 가중치를 도출했습니다.
+
+### Step 5. 실시간 테스트 및 결과 (Evaluation)
+* 학습 완료 후 `F.softmax` 함수를 통해 카메라 피드에 잡히는 손동작의 확률을 실시간으로 계산했습니다.
+* 엄지를 올리거나 내렸을 때 해당 클래스의 예측 확률이 실시간 슬라이더 바에 즉각적으로 반영되는 것을 확인했습니다.
+
+---
+
+## 📁 Repository Structure
+```text
+├── dataset/
+│   ├── thumbs_up/       # 엄지 척 이미지 데이터
+│   └── thumbs_down/     # 역엄지 이미지 데이터
+├── classification_interactive.ipynb  # 메인 주피터 노트북 코드
+└── my_model.pth         # 학습 완료된 PyTorch 모델 가중치 파일
