@@ -1,0 +1,210 @@
+# Interactive Classification Tool (Emotions Project)
+
+## 1. Project Overview
+
+Emotions Project는 Thumbs Project와 거의 동일한 구조를 가진 이미지 분류(Classification) 프로젝트이다.
+
+카메라 입력을 기반으로 얼굴 표정을 인식하여 다음 감정을 분류한다:
+
+* Happy
+* Sad
+* Angry
+* None
+
+---
+
+# 2. Notebook Setup
+
+JupyterLab에서 다음 노트북을 사용한다:
+
+```text id="k2p9xq"
+classification_interactive.ipynb
+```
+
+### 초기화 과정
+
+* Kernel → Restart Kernel and Clear All Outputs 실행
+* 다른 노트북에서 카메라 사용 중이면 커널 종료 필요
+
+---
+
+# 3. TASK and CATEGORIES 설정
+
+프로젝트 실행 전에 반드시 TASK와 CATEGORIES를 수정한다.
+
+```python id="m9x1aa"
+# TASK = 'thumbs'
+TASK = 'emotions'
+# TASK = 'fingers'
+# TASK = 'diy'
+
+# CATEGORIES = ['thumbs_up', 'thumbs_down']
+CATEGORIES = ['none', 'happy', 'sad', 'angry']
+# CATEGORIES = ['1', '2', '3', '4', '5']
+# CATEGORIES = ['diy_1', 'diy_2', 'diy_3']
+```
+
+---
+
+# 4. Model Architecture
+
+모델은 ResNet-18 사전 학습(pretrained) 모델을 사용한다.
+
+```text id="p7v4mn"
+ResNet-18 (pretrained)
+```
+
+* 입력: 얼굴 이미지
+* 출력: 4개의 감정 클래스 확률
+
+---
+
+# 5. Classification Output
+
+CATEGORIES가 4개이므로 모델 출력도 4개가 된다.
+
+```text id="u8z2bb"
+none / happy / sad / angry
+```
+
+각 클래스는 확률 값으로 출력된다.
+
+---
+
+# 6. Data Collection
+
+클릭 가능한 이미지 위젯을 통해 데이터를 수집한다.
+
+각 클래스별로 약 20개씩 데이터를 수집한다.
+
+### 데이터 수집 예시
+
+* happy → 20개 (웃는 표정)
+* sad → 20개 (슬픈 표정)
+* angry → 20개 (화난 표정)
+* none → 20개 (무표정)
+
+---
+
+### 데이터 수집 팁
+
+* 얼굴 방향을 다양하게 변경
+* 머리 좌우/상하 움직임 추가
+* 감정을 과장하여 초기 학습 강화
+
+---
+
+# 7. Training
+
+모델 학습 단계:
+
+### Hyperparameters
+
+* Epochs = 10
+* Batch Size
+* Learning Rate
+* Momentum
+
+---
+
+## Loss Function
+
+분류 문제이므로 Cross Entropy Loss를 사용한다.
+
+---
+
+# 8. Live Inference
+
+학습 후 실시간 카메라를 통해 결과를 확인할 수 있다.
+
+### 출력 방식
+
+* 4개 클래스 확률 슬라이더
+* 가장 높은 확률이 최종 예측
+
+---
+
+# 9. Model Improvement
+
+모델 성능이 부족하면 반복적으로 개선한다.
+
+## Improvement Strategy
+
+### 1. Add More Data
+
+* 각 클래스 10개 추가
+
+### 2. Retrain
+
+* Epochs = 5~10
+
+### 3. Vary Conditions
+
+* 카메라 거리 변경
+* 배경 변경
+* 조명 변경
+* 다양한 얼굴 표정 추가
+
+---
+
+## Key Idea
+
+```text id="c3n1kk"
+More Data + More Variation + More Training = Better Accuracy
+```
+
+---
+
+# 10. Model Saving
+
+모델이 만족스러우면 저장한다.
+
+* model path 입력
+* Save Model 클릭
+
+---
+
+# 11. Extending Projects
+
+Emotions Project는 확장 가능하다.
+
+## Possible Projects
+
+* Thumbs Classification
+* Finger Counting
+* Custom DIY Classifier
+* Gesture Recognition
+
+---
+
+# 12. How to Create New Project
+
+새 프로젝트 생성 방법:
+
+1. TASK 변경
+2. CATEGORIES 수정
+3. Kernel Restart
+4. 모든 셀 실행
+5. 데이터 수집
+6. 모델 학습
+7. 테스트
+
+---
+
+# 13. Summary
+
+* Emotions Project는 이미지 분류 프로젝트이다.
+* ResNet-18 pretrained 모델을 사용한다.
+* 4개의 감정 클래스를 분류한다.
+* 각 클래스는 충분한 데이터 수집이 중요하다.
+* 실시간 카메라 기반 추론이 가능하다.
+* 데이터 추가 + 재학습으로 성능을 개선한다.
+
+---
+
+# References
+
+* PyTorch Documentation
+* NVIDIA Jetson AI Curriculum
+* Deep Learning - Ian Goodfellow
+* ResNet Paper (He et al.)
