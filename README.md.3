@@ -1,0 +1,135 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, models, transforms
+from torch.utils.data import DataLoader
+import os
+
+def main():
+    # ==========================================
+    # 1. 하이퍼파라미터 및 설정
+    # ==========================================
+    # Jetson Nano 환경을 고려하여 배치 사이즈는 작게(예: 8 또는 16) 설정하는 것이 좋습니다.
+    BATCH_SIZE = 16
+    NUM_CLASSES = 3  # NVIDIA 교재 예시에 나온 3개 클래스로 설정
+    LEARNING_RATE = 0.001
+    NUM_EPOCHS = 5
+    
+    # 데이터셋 경로 (사용자의 환경에 맞게 수정 필요)
+    # 데이터 구조 예시:
+    # data/train/class1/..., data/train/class2/...
+    DATA_DIR = './data' 
+    
+    # GPU(CUDA) 사용 가능 여부 확인 (Jetson Nano는 CUDA 지원)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    # ==========================================
+    # 2. 데이터 전처리 및 로드 (Data Augmentation)
+    # ==========================================
+    # ResNet-18은 기본적으로 224x224 크기의 이미지를 입력으로 받습니다.
+    data_transforms = {
+        'train': transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]) # ImageNet 표준 정규화
+        ]),
+        'val': transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ]),
+    }
+
+    # 이미지 데이터셋 및 데이터로더 생성
+    # 실제 환경에서 실행 시 주석을 해제하고 경로를 맞춰주세요.
+    """
+    image_datasets = {x: datasets.ImageFolder(os.path.join(DATA_DIR, x), data_transforms[x]) for x in ['train', 'val']}
+    dataloaders = {x: DataLoader(image_datasets[x], batch_size=BATCH_SIZE, shuffle=True, num_workers=2) for x in ['train', 'val']}
+    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+    """
+
+    # ==========================================
+    # 3. ResNet-18 모델 로드 및 전이 학습 설정
+    # ==========================================
+    # ImageNet으로 사전 훈련된(Pre-trained) ResNet-18 모델 로드
+    # (weights=models.ResNet18_Weights.DEFAULT는 최신 PyTorch 가이드라인입니다)
+    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+    
+    # [교재 내용 반영] 이전 학습된 특징 레이어들의 가중치를 그대로 재사용하기 위해 고정(Freeze)
+    # 만약 하위 레이어도 미세 조정(Fine-tuning)하고 싶다면 이 루프를 생략하면 됩니다.
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # [교재 내용 반영] 마지막 완전히 연결된 레이어(fc)를 우리의 클래스 개수(3개)에 맞게 수정
+    # 원래 구조: model.fc = nn.Linear(512, 1000)
+    num_ftrs = model.fc.in_features # 512 차원 추출
+    model.fc = nn.Linear(num_ftrs, NUM_CLASSES) # (512, 3)으로 교체
+    
+    # 모델을 GPU 또는 CPU로 이동
+    model = model.to(device)
+
+    # ==========================================
+    # 4. 손실함수 및 옵티마이저 설정
+    # ==========================================
+    # 분류 문제를 위한 교차 엔트로피 손실함수
+    criterion = nn.CrossEntropyLoss()
+    
+    # 마지막으로 교체한 fc 레이어의 파라미터만 업데이트하도록 설정 (전이학습 효율 극대화)
+    optimizer = optim.Adam(model.fc.parameters(), lr=LEARNING_RATE)
+
+    print("Model setup complete. Ready for training!")
+    print(model.fc) # 변경된 레이어 구조 출력 확인: Linear(in_features=512, out_features=3, bias=True)
+
+    # ==========================================
+    # 5. 학습 루프 (간략화된 버전)
+    # ==========================================
+    # 실제 학습을 진행하려면 위 2번의 데이터로더 주석을 해제해야 합니다.
+    """
+    for epoch in range(NUM_EPOCHS):
+        print(f'Epoch {epoch+1}/{NUM_EPOCHS}')
+        print('-' * 10)
+
+        for phase in ['train', 'val']:
+            if phase == 'train':
+                model.train()  # 학습 모드
+            else:
+                model.eval()   # 평가 모드
+
+            running_loss = 0.0
+            running_corrects = 0
+
+            for inputs, labels in dataloaders[phase]:
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+
+                optimizer.zero_grad()
+
+                # 순전파 (Forward)
+                with torch.set_grad_enabled(phase == 'train'):
+                    outputs = model(inputs)
+                    _, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+
+                    # 역전파 + 최적화 (학습 단계에서만)
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
+
+                running_loss += loss.item() * inputs.size(0)
+                running_corrects += torch.sum(preds == labels.data)
+
+            epoch_loss = running_loss / dataset_sizes[phase]
+            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+
+            print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+            
+    # 학습 완료 후 모델 가중치 저장
+    torch.save(model.state_dict(), 'resnet18_transfer_jetson.pth')
+    print("Model saved to resnet18_transfer_jetson.pth")
+    """
+
+if __name__ == '__main__':
+    main()
