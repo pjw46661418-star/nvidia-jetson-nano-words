@@ -1,0 +1,58 @@
+# [Jetson Nano] 실시간 이미지 분류 프로젝트 (Thumbs Project)
+
+이 레포지터리는 NVIDIA Deep Learning Institute(DLI)의 **"Getting Started with AI on Jetson Nano"** 과정 중 실시간 이미지 분류(Image Classification) 프로젝트를 실습하고 정리한 내용을 담고 있습니다.
+
+---
+
+## 📌 프로젝트 개요
+라이브 카메라 피드를 통해 사용자의 손동작 신호(`thumbs-up` 또는 `thumbs-down`)를 실시간으로 인식하고 의미를 분류하는 딥러닝 모델을 구축하고 학습시킵니다.
+
+* **실습 환경:** NVIDIA Jetson Nano, JupyterLab, USB 웹캠
+* **주요 기술:** PyTorch, torchvision(ResNet-18), ipywidgets
+
+---
+
+## 🚀 1. 초기 설정 및 코드 실행 (Interactive Tool Startup)
+
+JupyterLab의 `classification` 폴더 내 `classification_interactive.ipynb` 노트북을 열고 코드 블록을 순차적으로 하나씩 실행합니다.
+
+* **카메라(Camera):** 이미지 크기를 설정하고 카메라를 시작합니다. (다른 커널에서 카메라가 활성화되어 있다면 종료 후 실행해야 합니다.)
+* **작업 및 카테고리(Task & Categories):** `thumbs-up`과 `thumbs-down` 2개의 클래스와 데이터 저장용 디렉토리를 정의합니다.
+* **데이터 수집(Data Collection):** IPython 위젯을 활용해 카메라 화면 및 데이터 수집용 인터페이스(`data_collection_widget`)를 생성합니다.
+* **모델 구성(Model):** * GPU 장치 할당: `device = torch.device('cuda')`
+    * 사전 학습된 ResNet-18 모델 로드: `pretrained=True`
+    * 분류기 레이어를 2개의 클래스에 맞게 수정: `model.fc = torch.nn.Linear(512, len(dataset.categories))`
+* **실시간 실행(Live Execution):** 백그라운드 스레드에서 모델을 실행하며, 소프트맥스(Softmax) 함수를 통해 출력값을 0~1 사이의 확률 분포로 정규화합니다.
+* **트레이닝과 실행(Training & Execution):** 모델 학습을 위한 하이퍼파라미터(에포크, 배치 사이즈, 학습률 등)를 설정하고 역전파(Backpropagation)를 수행하는 UI를 구성합니다.
+
+모든 셀을 실행하면 상호작용 가능한 전체 도구(위젯)가 화면에 표시됩니다.
+
+---
+
+## 🧠 2. 모델 학습 및 튜닝 프로세스
+
+통합된 대화형 도구를 사용하여 다음 단계에 따라 모델을 직접 학습시킵니다.
+
+### Step 1: 초기 데이터 수집
+1.  `category` 드롭다운에서 `thumbs-up`을 선택합니다.
+2.  카메라 앞에서 엄지손가락을 위로 든 상태로 각도와 위치를 조금씩 변경하며 `add` 버튼을 눌러 **30개의 이미지**를 수집합니다.
+3.  `category`를 `thumbs-down`으로 변경하고, 동일하게 엄지를 내린 상태의 이미지 **30개**를 수집합니다.
+
+### Step 2: 초기 데이터 훈련
+1.  `epochs`(에포크) 수를 **10**으로 설정하고 `train` 버튼을 클릭합니다. (약 30초 소요)
+2.  Progress Bar를 통해 훈련 진행도를 확인하며, `loss`(손실)가 감소하고 `accuracy`(정확도)가 증가하는지 모니터링합니다.
+
+### Step 3: 실시간 데이터 테스트
+1.  훈련이 완료되면 라이브 카메라 피드 앞에서 엄지를 위아래로 움직여 봅니다.
+2.  위젯의 슬라이더가 실시간 예측 확률을 정확하게 반영하는지 테스트합니다.
+3.  *참고: 카메라 뷰가 멈추는(Freeze) 경우, 커널을 종료하고 다시 시작한 뒤 모든 셀을 재실행해야 합니다. (수집된 데이터는 유지되나 모델 트레이닝은 다시 해야 함)*
+
+### Step 4: 모델 개선하기 (반복 학습)
+초기 훈련 결과가 부정확하다면 다음 방법을 통해 모델의 신뢰도를 높입니다.
+1.  배경을 바꾸거나, 화면의 가장자리로 손을 옮기거나, 카메라와의 거리를 조절하여 인식이 잘 안 되는 환경을 파악합니다.
+2.  해당 환경에서 `thumbs-up`과 `thumbs-down` 이미지를 각각 **30개씩 추가로 수집**합니다.
+3.  `epochs`를 **5**로 설정하고 추가 훈련(Train)을 진행합니다. 이 과정을 결과에 만족할 때까지 반복합니다.
+
+### Step 5: 모델 저장하기
+1.  테스트 결과에 충분히 만족한다면 `model path` 텍스트 상자에 원하는 파일명(예: `my_model.pth`)을 입력합니다.
+2.  `save model` 버튼을 클릭하여 학습된 가중치 모델을 최종 저장합니다.
