@@ -29,6 +29,3 @@ NVIDIA Deep Learning Institute(DLI)의 **"Getting Started with AI on Jetson Nano
 | :--- | :--- | :--- |
 | **목적** | 1,000개의 사물 분류 | 사용자가 정의한 N개의 클래스 분류 |
 | **FC 레이어 구조** | `(512, 1000)` | `(512, N)` *(예: 3개 클래스인 경우 `(512, 3)`)* |
-
----
-*본 내용은 NVIDIA Deep Learning Institute 강의 내용을 바탕으로 작성되었습니다.*
